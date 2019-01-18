@@ -298,6 +298,28 @@ removeCustomData(key), allows you to delete custom data.
 restart(), allows you to self restart the NodeServer.
 
 
+### Creating nodes
+
+Nodes are created by instantiating one of your node classes, and using the addNode method on the interface:
+
+```javascript
+const createdNode = new MyNode(this.polyInterface, primaryAddress, nodeAddress, nodeDescription)
+this.polyInterface.addNode(createdNode);
+```
+
+You could do this different ways;
+
+If your node server has a fixed set of nodes, you can perhaps create them within the config event. If the expected
+nodes are not there, you could create them there on startup.
+
+You could as well create them during polling, as you discover them from a third party API.
+
+Perhaps they could also be defined using the configuration UI, using the typedParams list option.
+
+In the Template, they are created using a command from the controller Node. This allows to create new nodes using an
+admin console button.
+
+
 ### Logger
 
 This polyglot interface uses a logging mecanism that you can also use in your NodesServer.
@@ -319,28 +341,12 @@ try {
 }
 ```
 
+The logs are located in <home>/.polyglot/nodeservers/<your node server>/logs/<date>.log
 
-
-### Creating nodes
-
-Nodes are created by instantiating one of your node classes, and using the addNode method on the interface:
-
-```javascript
-const createdNode = new MyNode(this.polyInterface, primaryAddress, nodeAddress, nodeDescription)
-this.polyInterface.addNode(createdNode);
+To watch your NodeServer logs:
 ```
-
-You could do this different ways;
-
-If your node server has a fixed set of nodes, you can perhaps create them within the config event. If the expected
-nodes are not there, you could create them there on startup.
-
-You could as well create them during polling, as you discover them from a third party API.
-
-Perhaps they could also be defined using the configuration UI, using the typedParams list option.
-
-In the Template, they are created using a command from the controller Node. This allows to create new nodes using an
-admin console button.
+tail -f ~/.polyglot/nodeservers/<NodeServer>/logs/<date>.log
+```
 
 
 ### How to Enable your NodeServer in the Cloud
