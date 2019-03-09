@@ -1,6 +1,11 @@
 'use strict';
 
-module.exports = {
+function useCloud() {
+  return process.env.MQTTENDPOINT && process.env.STAGE;
+}
+
+// If we are connecting to Polyglot Cloud, use the PGC interface instead;
+module.exports = useCloud() ? require('pgc_interface') : {
   // Interface class for Polyglot
   Interface: require('./lib/Interface.js'),
 
@@ -10,3 +15,4 @@ module.exports = {
   // Logger utility for the NodeServer (Entries will be tagged with NS:)
   logger: require('./lib/logger.js').ns,
 };
+
