@@ -4,6 +4,12 @@ function useCloud() {
   return process.env.MQTTENDPOINT && process.env.STAGE;
 }
 
+// TEST
+console.log('Poly: Use cloud: %s', useCloud());
+console.log('MQTT: %s Stage: %s', process.env.MQTTENDPOINT, process.env.STAGE);
+console.log('process.env: %o', process.env);
+console.log('process: %o', process);
+
 // If we are connecting to Polyglot Cloud, use the PGC interface instead;
 module.exports = useCloud() ? require('pgc_interface') : {
   // Interface class for Polyglot
