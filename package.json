@@ -1,6 +1,6 @@
 {
   "name": "polyinterface",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Polyglot-v2 interface for node.js",
   "main": "index.js",
   "scripts": {
@@ -16,8 +16,7 @@
   "dependencies": {
     "mqtt": "^2.18.8",
     "winston": "^3.1.0",
-    "winston-daily-rotate-file": "^3.6.0",
-    "pgc_interface": "^1.0.0"
+    "winston-daily-rotate-file": "^3.6.0"
   },
   "devDependencies": {
     "eslint": "^5.12.0",

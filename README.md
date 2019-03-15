@@ -31,50 +31,71 @@ The polyglot interface module has 2 main javascript classes you need to use to i
 
 ### The Node class
 The Node class represents a generic ISY node. Your custom nodes will have to inherit from this class, and they should
-match the status and the controls that you have created in your nodedefs.
+match the status and the controls that you have created in your nodedefs. Given that your Nodeserver may be used for
+Polyglot V2 or Polyglot cloud, the class has to be dynamically created to that your class extends the correct Node class
+(Polyglot V2 or PGC).
+
+The recommended approach is to create one node.js module per Nodedefs, with a single function that returns the class. 
+The class returned inherits from Polyglot.Node, Polyglot being the Polyglot module passed from your Nodeserver (Polyglot V2 or PGC).
 
 ```javascript
-const Polyglot = require('polyinterface');
+const nodeDefId = 'VNODE_DIMMER';
 
-module.exports = class MyNode extends Polyglot.Node {
+module.exports = function(Polyglot) {
+// Utility function provided to facilitate logging.
+  const logger = Polyglot.logger;
 
-  // polyInterface: handle to the interface
-  // address: Your node address, without the leading 'n999_'
-  // primary: Same as address, if the node is a primary node
-  // name: Your node name
+  // This is your custom Node class
+  class MyNode extends Polyglot.Node {
 
-  constructor(polyInterface, primary, address, name) {
-    super(nodeDefId, polyInterface, primary, address, name);
+    // polyInterface: handle to the interface
+    // address: Your node address, withouth the leading 'n999_'
+    // primary: Same as address, if the node is a primary node
+    // name: Your node name
+    constructor(polyInterface, primary, address, name) {
+      super(nodeDefId, polyInterface, primary, address, name);
 
-    // Commands that this node can handle.
-    // Should match the 'accepts' section of the nodedef.
-    this.commands = {
-      DON: this.onDON,
-      DOF: this.onDOF,
-      QUERY: this.onQuery,
-    };
+      // PGC supports setting the node hint when creating a node
+      // REF: https://github.com/UniversalDevicesInc/hints
+      // Must be a string in this format
+      // If you don't care about the hint, just comment the line.
+      this.hint = '0x01020900'; // Example for a Dimmer switch
 
-    // Status that this node has.
-    // Should match the 'sts' section of the nodedef.
-    this.drivers = {
-      ST: {value: 0, uom: 51},
-    };
-  }
+      // Commands that this node can handle.
+      // Should match the 'accepts' section of the nodedef.
+      this.commands = {
+        DON: this.onDON,
+        DOF: this.onDOF,
+        // You can use the query function from the base class directly
+        QUERY: this.query,
+      };
 
-  onDON(message) {
-    logger.info('DON (%s): %s',
-      this.address,
-      message.value ? message.value : 'No value');
+      // Status that this node has.
+      // Should match the 'sts' section of the nodedef.
+      this.drivers = {
+        ST: {value: '0', uom: 51},
+      };
+    }
 
-    // setDrivers accepts string or number (message.value is a string
-    this.setDriver('ST', message.value ? message.value : 100);
-  }
+    onDON(message) {
+      logger.info('DON (%s): %s',
+        this.address,
+        message.value ? message.value : 'No value');
 
-  onDOF() {
-    logger.info('DOF (%s)', this.address);
+      // setDrivers accepts string or number (message.value is a string)
+      this.setDriver('ST', message.value ? message.value : '100');
+    }
 
-    this.setDriver('ST', 0);
-  }
+    onDOF() {
+      logger.info('DOF (%s)', this.address);
+      this.setDriver('ST', '0');
+    }
+  };
+
+  // Required so that the interface can find this Node class using the nodeDefId
+  MyNode.nodeDefId = nodeDefId;
+
+  return MyNode;
 };
 ```
 
@@ -139,9 +160,15 @@ You first need to instantiate the interface by passing an array of node definiti
 Once instantiated, you can use events triggered by the interface such as `config`, `poll` or `stop`.
 
 ```javascript
-const Polyglot = require('polyinterface');
-const ControllerNode = require('./Nodes/ControllerNode.js'); // Controller node
-const MyNode = require('./Nodes/MyNode.js'); // This is an example node
+
+// Loads the appropriate Polyglot interface module.
+const Polyglot = useCloud() ?
+  require('pgc_interface') : // Cloud module
+  require('polyinterface'); // Polyglot V2 module (On-Premise)
+
+// Note that we are passing the Polyglot module so that we can get the class inherited from the correct module.
+const ControllerNode = require('./Nodes/ControllerNode.js')(Polyglot); // Controller node
+const MyNode = require('./Nodes/MyNode.js')(Polyglot); // This is an example node
 
 
 // Create an instance of the Polyglot interface. We need pass in parameter all
@@ -189,7 +216,9 @@ you if this is a long poll or short poll.
 
 The following events are less commonly used but could be useful for troubleshooting:
 
-`message` is triggered for every messages received from Polyglot to the NodeServer.
+`messageReceived` is triggered for every messages received from Polyglot to the NodeServer.
+
+`messageSent` is triggered for every messages sent to Polyglot from your NodeServer.
 
 `mqttConnected` is the first event being triggered and happens when the MQTT connection is established. The config is
 not yet available.
@@ -241,7 +270,7 @@ addCustomParams(params), Adds custom params specified by the params objects. Thi
 
 removeCustomParams(key), Removed the custom param specified by the key.
 
-saveTypedParams(typedParams), This is the newest and preferred method to use parameters in the UI.
+saveTypedParams(typedParams), This method is not yet available in the cloud.
 
 Here's an example
 ```javascript
@@ -272,7 +301,7 @@ poly.saveTypedParams(typedParams);
 ```
 
 
-setCustomParamsDoc(html), allows you to set the HTML help file for your params.
+setCustomParamsDoc(html), allows you to set the HTML help file for your params. This method is not yet available in the cloud,
 
 Here's an example using a markdown file.
 
@@ -341,14 +370,20 @@ try {
 }
 ```
 
-The logs are located in <home>/.polyglot/nodeservers/<your node server>/logs/<date>.log
+The logs are located in <home>/.polyglot/nodeservers/<your node server>/logs/debug.log
 
 To watch your NodeServer logs:
 ```
-tail -f ~/.polyglot/nodeservers/<NodeServer>/logs/<date>.log
+tail -f ~/.polyglot/nodeservers/<NodeServer>/logs/debug.log
 ```
 
 
 ### How to Enable your NodeServer in the Cloud
 
-This Polyglot interface currently does not support cloud polyglot.
+Your nodeserver needs to use the [pgc_interface node.js module](https://github.com/UniversalDevicesInc/pgc-nodejs-interface).
+
+If your Nodeserver supports both Polyglot V2 and Cloud, then your Nodeserver 
+must dynamically select which interface module to use. See the 
+[node.js NodeServer template](https://github.com/UniversalDevicesInc/poly-template-nodejs) for an example.
+Although they are completely separate module, the way they are used 
+from your Nodeserver are very similar, with very little differences.
