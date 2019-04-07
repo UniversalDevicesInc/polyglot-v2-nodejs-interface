@@ -90,7 +90,7 @@ module.exports = function(Polyglot) {
       logger.info('DOF (%s)', this.address);
       this.setDriver('ST', '0');
     }
-  };
+  }
 
   // Required so that the interface can find this Node class using the nodeDefId
   MyNode.nodeDefId = nodeDefId;
@@ -191,7 +191,10 @@ poly.on('poll', function(longPoll) {
   logger.info('%s', longPoll ? 'Long poll' : 'Short poll');
 });
 
-// Received a 'stop' message from Polyglot. This NodeServer is shutting down
+// Received a 'stop' message from Polyglot. This NodeServer is 
+// 
+// 
+// shutting down
 poly.on('stop', function() {
   logger.info('Graceful stop');
 });
@@ -205,6 +208,8 @@ poly.start();
 `config` is triggered whenever there is a change in the configuration, the nodes, the notices, anything. The config
 is passed in parameter. You can check for config.isInitialConfig to know if the is the first config received. Use this
 for initialization when you want to have a working config loaded.
+
+The config object will have a property newParamsDetected set to true if the customParams changed.
 
 `poll` is triggered frequently, based on your short poll and long poll values. The longPoll parameter is a flag telling
 you if this is a long poll or short poll.
@@ -238,31 +243,35 @@ start(), to initiate the MQTT connection and start communicating with Polyglot.
 
 isConnected(), which tells you if this NodeServer and Polyglot are connected via MQTT.
 
-async addNode(node), which adds a new node to Polyglot. You fist need to instantiate a node using your custom class,
+async addNode(node), Adds a new node to Polyglot. You fist need to instantiate a node using your custom class,
 which you then pass to addNode. This is an async function which allows you to "await" the result and verify if the
 addNode was successful.
 
-getNodes(), gives you your list of nodes. This is not just an array of nodes returned by Polyglot. This is a list of
+getConfig(), Returns a copy of the last config received.
+
+getNodes(), Returns your list of nodes. This is not just an array of nodes returned by Polyglot. This is a list of
 nodes with your classes applied to them.
 
-getNode(address), gives you a single node.
+getNode(address), Returns a single node.
 
-delNode(node), allows you to delete the node specified. You need to pass the actual node. Alternatively, you can use
+delNode(node), Allows you to delete the node specified. You need to pass the actual node. Alternatively, you can use
 delNode() directly on the node itself, which has the same effect.
 
-updateProfile(), sends the latest profile to ISY from the profile folder.
+updateProfile(), Sends the latest profile to ISY from the profile folder.
 
-getNotices(), gives you the current list of Polyglot notices.
+getNotices(), Returns the current list of Polyglot notices.
 
-addNotice(key, text), adds a notice to the Polyglot UI. The key allows to refer to that notice later on.
+addNotice(key, text), Adds a notice to the Polyglot UI. The key allows to refer to that notice later on.
 
-removeNotice(key), remove notice specified by the key.
+addNoticeTemp(key, text, delaySec), Adds a notice to the Polyglot UI. The notice will be active for delaySec seconds.
 
-removeNoticesAll(), removes all notices from Polyglot.
+removeNotice(key), Remove notice specified by the key.
 
-getCustomParams(), gives you all the configuration parameters from the UI.
+removeNoticesAll(), Removes all notices from Polyglot.
 
-getCustomParam(key), Gives you the param as seen in the UI.
+getCustomParams(), Returns all the configuration parameters from the UI.
+
+getCustomParam(key), Returns the param as seen in the UI.
 
 saveCustomParams(params), Saves the params as specified by the params objects. All the params not passed here will be lost.
 
@@ -332,7 +341,7 @@ restart(), allows you to self restart the NodeServer.
 Nodes are created by instantiating one of your node classes, and using the addNode method on the interface:
 
 ```javascript
-const createdNode = new MyNode(this.polyInterface, primaryAddress, nodeAddress, nodeDescription)
+const createdNode = new MyNode(this.polyInterface, primaryAddress, nodeAddress, nodeDescription);
 this.polyInterface.addNode(createdNode);
 ```
 
