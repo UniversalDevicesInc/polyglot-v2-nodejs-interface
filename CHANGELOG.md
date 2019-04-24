@@ -1,5 +1,8 @@
 # Change Log
 
+v1.2.3 (2019-04-23)
+* Add support for hints.
+
 v1.2.2 (2019-04-23)
 * Add support for notices in object format used by newer polyglot 
 versions.
