@@ -139,6 +139,8 @@ this.reportDriver(driver, forceReport), to send existing driver value to ISY.
 
 this.reportDrivers(), To send existing driver values to ISY.
 
+this.reportCmd(command, value=null, uom=null), report that the device has sent a command.
+
 this.query(), which is called when we get a query request (Override this to fetch live data).
 
 this.status(), which is called when we get a status request for this node.

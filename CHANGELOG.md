@@ -1,5 +1,8 @@
 # Change Log
 
+v1.2.4 (2021-11-30)
+* Add reportCmd() method to node class
+
 v1.2.3 (2019-04-23)
 * Add support for hints.
 

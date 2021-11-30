@@ -1,6 +1,6 @@
 {
   "name": "polyinterface",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Polyglot-v2 interface for node.js",
   "main": "index.js",
   "scripts": {
